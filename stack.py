@@ -4,10 +4,13 @@ import json
 import requests
 import pandas as pd
 
+
 sauce = 'http://m.ironman.com/triathlon/events/americas/ironman/world-championship/results.aspx'
+
 
 r = requests.get(sauce)
 data = r.text
+
 soup = BeautifulSoup(data, 'html.parser')
 
 
@@ -38,10 +41,14 @@ def parse_table(soup):
 
     return result
 
-with open('data.txt', 'w') as txtfile:
-    json.dump(parse_table(soup), txtfile)
+jsonObj = parse_table(soup)
 
-print(json.dumps(parse_table(soup), indent=3))
+result = pd.DataFrame()
+for k, v in jsonObj.items():
 
-kona = pd.read_csv('data.csv')
-kona.info()
+    temp_df = pd.DataFrame.from_dict(v)
+    temp_df['name'] = k
+    result = result.append(temp_df)
+
+result = result.reset_index(drop=True)
+result.to_csv('kona.csv', index=False)
